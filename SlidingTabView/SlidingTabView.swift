@@ -15,6 +15,7 @@ class SlidingTabView : UIView, UIScrollViewDelegate {
     var segmentedHeight : CGFloat = 30
     var arViewControllers : NSArray!
     var scrollView : UIScrollView!
+    var loadFlag : NSMutableArray = NSMutableArray()
     var contentDict : NSDictionary!{
         didSet {
             sectionTitles = contentDict.allKeys
@@ -33,7 +34,7 @@ class SlidingTabView : UIView, UIScrollViewDelegate {
     }
     var segmentedControl : HMSegmentedControl!
     
-    var selectedIndex : Int = 0
+    var selectedIndex : Int = -1
     
     var viewControllersCount : Int = 0
     
@@ -46,7 +47,7 @@ class SlidingTabView : UIView, UIScrollViewDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
-
+    
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -79,9 +80,13 @@ class SlidingTabView : UIView, UIScrollViewDelegate {
     func indexBlock(index : Int){
         if selectedIndex != index {
             let selectedViewController = arViewControllers[index] as? UIViewController
-            selectedViewController?.loadData()
+            if !(loadFlag[index] as Bool) {
+                selectedViewController?.lazyLoadData()
+                loadFlag[index] = true
+            }
             selectedIndex = index
         }
+        
         if transFlag {
             self.setSelectedViewControllerIndex(index)
         }
@@ -104,8 +109,9 @@ class SlidingTabView : UIView, UIScrollViewDelegate {
             scrollView.addSubview(view.view)
             view.view.tag = i
             viewControllersCount++
+            loadFlag.addObject(false)
         }
-        scrollView.contentSize = CGSizeMake(UIScreen.mainScreen().bounds.width * CGFloat(viewControllersCount), scrollView.frame.size.height)
+        scrollView.contentSize = CGSizeMake(UIScreen.mainScreen().bounds.width * CGFloat(viewControllersCount), 10)
         segmentedControl.setSelectedIndex(0, animated: true)
     }
     
@@ -121,6 +127,15 @@ class SlidingTabView : UIView, UIScrollViewDelegate {
         let index : Int = Int(scrollView.contentOffset.x) / Int(self.frame.width)
         segmentedControl.setSelectedIndex(index, animated: true)
     }
+    
+    //    func scrollViewDidScroll(sender: UIScrollView) {
+    //        if (sender.contentOffset.y != 0) {
+    //            var offset:CGPoint = sender.contentOffset
+    //            offset.y = 0
+    //            sender.contentOffset = offset
+    //        }
+    //        //scrollView.setContentOffset(CGPointMake(oldX, scrollView.contentOffset.y), animated: true)
+    //    }
     
     override var frame : CGRect {
         didSet {
