@@ -8,6 +8,6 @@
 
 import UIKit
 extension UIViewController {
-    func loadData(){
+    func lazyLoadData(){
     }
 }
